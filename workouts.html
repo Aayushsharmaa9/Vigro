@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Grind — Workouts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="bg-glow"><span class="g1"></span><span class="g2"></span><span class="g3"></span></div>
+<nav id="topnav"></nav>
+<div class="app">
+  <header class="page-in">
+    <div class="eyebrow">Browse</div>
+    <h1>Workouts</h1>
+    <p class="muted">Pick a focus, a level, and get moving.</p>
+  </header>
+
+  <div class="section">
+    <div class="chips" id="diffChips">
+      <div class="chip active" data-d="All">All Levels</div>
+      <div class="chip" data-d="Beginner">Beginner</div>
+      <div class="chip" data-d="Intermediate">Intermediate</div>
+      <div class="chip" data-d="Advanced">Advanced</div>
+    </div>
+  </div>
+
+  <div class="section grid-2 stagger" id="catGrid"></div>
+
+  <div class="section">
+    <div class="section-title">All Workouts</div>
+    <div class="stack" id="workoutList"></div>
+  </div>
+
+  <footer class="credit">Daily Grind · <b>Created by Ayush Sharma</b></footer>
+</div>
+<div id="bottomnav"></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+let activeCat = null;
+let activeDiff = "All";
+
+function renderCats(){
+  document.getElementById("catGrid").innerHTML = CATEGORIES.map(c=>{
+    const count = Object.values(WORKOUTS).filter(w=>w.category===c.key).length;
+    return `<div class="glass tile tap" data-cat="${c.key}"><div class="ic">${c.icon}</div><div class="t">${c.key}</div><div class="s">${count} workouts</div></div>`;
+  }).join("");
+  document.querySelectorAll("[data-cat]").forEach(el=>{
+    el.onclick = ()=>{ activeCat = (activeCat===el.dataset.cat) ? null : el.dataset.cat; renderList(); highlightCats(); };
+  });
+}
+function highlightCats(){
+  document.querySelectorAll("[data-cat]").forEach(el=>{
+    el.style.boxShadow = (activeCat===el.dataset.cat) ? "0 0 0 2px var(--accent)" : "";
+  });
+}
+function renderList(){
+  let list = Object.entries(WORKOUTS);
+  if(activeCat) list = list.filter(([id,w])=>w.category===activeCat);
+  if(activeDiff!=="All") list = list.filter(([id,w])=>w.difficulty===activeDiff);
+  document.getElementById("workoutList").innerHTML = list.map(([id,w])=>`
+    <a href="workout-player.html?w=${id}" class="glass card-sm row tap" style="display:flex;">
+      <div>
+        <div style="font-weight:700;font-size:14.5px;">${w.name}</div>
+        <div class="faint" style="font-size:12px;margin-top:2px;">${w.duration} · ${w.exercises.length} exercises</div>
+      </div>
+      <span class="pill">${w.difficulty}</span>
+    </a>
+  `).join("") || `<div class="glass card-sm muted" style="font-size:13.5px;">No workouts match this filter.</div>`;
+}
+document.getElementById("diffChips").addEventListener("click",(e)=>{
+  const chip = e.target.closest(".chip"); if(!chip) return;
+  document.querySelectorAll("#diffChips .chip").forEach(c=>c.classList.remove("active"));
+  chip.classList.add("active");
+  activeDiff = chip.dataset.d;
+  renderList();
+});
+renderCats(); renderList();
+</script>
+</body>
+</html>

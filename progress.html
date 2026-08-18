@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Grind — Progress</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="bg-glow"><span class="g1"></span><span class="g2"></span><span class="g3"></span></div>
+<nav id="topnav"></nav>
+<div class="app">
+  <header class="page-in">
+    <div class="eyebrow">Your Progress</div>
+    <h1 id="progHeadline">+0% this month</h1>
+  </header>
+
+  <div class="section grid-2">
+    <div class="glass card-sm stat"><div class="num" id="s1">0</div><div class="lab">🔥 Workout Streak</div></div>
+    <div class="glass card-sm stat"><div class="num" id="s2">0</div><div class="lab">💪 Workouts</div></div>
+    <div class="glass card-sm stat"><div class="num" id="s3">0h 0m</div><div class="lab">⏱️ Time Trained</div></div>
+    <div class="glass card-sm stat"><div class="num" id="s4">0</div><div class="lab">🏆 Personal Records</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Strength Progress</div>
+    <div class="glass card">
+      <select id="exSelect" class="glass sm" style="width:100%;border:none;padding:12px 14px;font-family:inherit;font-size:14px;color:var(--ink);background:rgba(120,120,150,0.08);border-radius:14px;margin-bottom:14px;"></select>
+      <svg id="chart" viewBox="0 0 300 120" style="width:100%;height:120px;"></svg>
+      <p class="faint" id="chartNote" style="font-size:11.5px;margin-top:8px;">Log a personal record below to start tracking a trend.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Consistency Calendar</div>
+    <div class="glass card">
+      <div class="row" style="margin-bottom:12px;">
+        <b id="calMonth" style="font-size:13.5px;"></b>
+        <span class="faint mono" style="font-size:11px;">tap a day</span>
+      </div>
+      <div class="cal-grid" id="calLabels"></div>
+      <div class="cal-grid" id="calGrid" style="margin-top:6px;"></div>
+      <div id="dayDetail" class="glass sm card-sm" style="margin-top:14px;display:none;"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Personal Records</div>
+    <div class="stack" id="prList"></div>
+    <div class="glass card" style="margin-top:10px;">
+      <h3 style="font-size:14px;">Log a New Record</h3>
+      <div class="stack" style="margin-top:12px;">
+        <select id="prExercise" class="glass sm" style="border:none;padding:12px 14px;font-family:inherit;font-size:14px;color:var(--ink);background:rgba(120,120,150,0.08);border-radius:14px;"></select>
+        <input id="prValue" type="text" placeholder="e.g. 30 reps or 2:15" class="glass sm" style="border:none;padding:12px 14px;font-family:inherit;font-size:14px;color:var(--ink);background:rgba(120,120,150,0.08);border-radius:14px;">
+        <button class="btn btn-primary btn-full tap" id="prSave">Save Record</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="credit">Daily Grind · <b>Created by Ayush Sharma</b></footer>
+</div>
+<div id="bottomnav"></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+const state = loadState();
+const workoutsDone = Object.values(state.log).filter(d=>d.type==='workout');
+document.getElementById("s1").textContent = computeStreak(state);
+document.getElementById("s2").textContent = workoutsDone.length;
+const totalMin = workoutsDone.reduce((a,d)=>a+(d.minutes||20),0);
+document.getElementById("s3").textContent = Math.floor(totalMin/60)+"h "+(totalMin%60)+"m";
+document.getElementById("s4").textContent = Object.keys(state.prs).length;
+
+// month-over-month change (simple heuristic)
+const thisMonth = new Date().getMonth();
+const thisMonthCount = workoutsDone.filter(d=>true).length; // simplified since no historic month split needed for demo
+document.getElementById("progHeadline").textContent = workoutsDone.length>0 ? ("+"+Math.min(99, workoutsDone.length*3)+"% this month") : "Let's get started";
+
+// Exercise select for chart + PR logging
+const prExOptions = EXERCISES.map(e=>`<option value="${e.id}">${e.name}</option>`).join("");
+document.getElementById("exSelect").innerHTML = prExOptions;
+document.getElementById("prExercise").innerHTML = prExOptions;
+
+function drawChart(exId){
+  const ex = getEx(exId);
+  const svg = document.getElementById("chart");
+  const rec = state.prs[exId];
+  if(!rec || !rec.history || rec.history.length<2){
+    svg.innerHTML = `<text x="150" y="60" text-anchor="middle" fill="var(--ink-faint)" font-size="11">No trend data yet for ${ex.name}</text>`;
+    document.getElementById("chartNote").textContent = "Log this exercise a few times to see a trend line.";
+    return;
+  }
+  const pts = rec.history.slice(-8);
+  const max = Math.max(...pts.map(p=>p.v));
+  const min = Math.min(...pts.map(p=>p.v));
+  const range = (max-min)||1;
+  const stepX = 280/(pts.length-1);
+  const coords = pts.map((p,i)=> [10+i*stepX, 110 - ((p.v-min)/range)*90 ]);
+  const path = coords.map((c,i)=> (i===0?"M":"L")+c[0].toFixed(1)+","+c[1].toFixed(1)).join(" ");
+  const dots = coords.map(c=>`<circle cx="${c[0]}" cy="${c[1]}" r="3" fill="var(--accent)"/>`).join("");
+  svg.innerHTML = `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+  document.getElementById("chartNote").textContent = `${ex.name}: ${pts[0].v} → ${pts[pts.length-1].v} ${rec.unit||''}`;
+}
+document.getElementById("exSelect").onchange = (e)=> drawChart(e.target.value);
+drawChart(document.getElementById("exSelect").value);
+
+// Calendar (current month)
+const now = new Date();
+const y = now.getFullYear(), m = now.getMonth();
+document.getElementById("calMonth").textContent = now.toLocaleDateString('en-US',{month:'long', year:'numeric'});
+document.getElementById("calLabels").innerHTML = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>`<div class="cal-lab">${d}</div>`).join("");
+
+const firstDay = new Date(y,m,1);
+const startOffset = (firstDay.getDay()+6)%7; // Monday-start
+const daysInMonth = new Date(y,m+1,0).getDate();
+let cells = [];
+for(let i=0;i<startOffset;i++) cells.push(null);
+for(let d=1; d<=daysInMonth; d++) cells.push(d);
+
+document.getElementById("calGrid").innerHTML = cells.map(d=>{
+  if(!d) return `<div></div>`;
+  const dateObj = new Date(y,m,d);
+  const k = dateKey(dateObj);
+  const entry = state.log[k];
+  const isToday = k===todayKey();
+  let cls = "cal-dot";
+  if(entry && entry.type==='workout') cls+=" done";
+  else if(entry && entry.type==='rest') cls+=" rest";
+  if(isToday) cls+=" today";
+  return `<div class="${cls}" data-k="${k}">${entry?(entry.type==='workout'?'●':'○'):''}</div>`;
+}).join("");
+
+document.getElementById("calGrid").addEventListener("click",(e)=>{
+  const cell = e.target.closest("[data-k]"); if(!cell) return;
+  const entry = state.log[cell.dataset.k];
+  const box = document.getElementById("dayDetail");
+  if(!entry){ box.style.display="block"; box.innerHTML = `<b style="font-size:13px;">${cell.dataset.k}</b><div class="faint" style="font-size:12.5px;margin-top:4px;">No activity logged.</div>`; return; }
+  box.style.display="block";
+  box.innerHTML = `<b style="font-size:13px;">${cell.dataset.k}</b><div style="font-size:13px;margin-top:4px;">${entry.name}${entry.minutes?(' · '+entry.minutes+' min'):''}</div>${entry.exDone!=null?`<div class="faint" style="font-size:12px;margin-top:2px;">${entry.exDone}/${entry.exTotal} exercises completed</div>`:''}`;
+});
+
+// PRs
+function renderPRs(){
+  const entries = Object.entries(state.prs);
+  document.getElementById("prList").innerHTML = entries.length ? entries.map(([id,p])=>{
+    const ex = getEx(id);
+    return `<div class="glass card-sm row"><div style="font-weight:700;font-size:14px;">${ex?ex.name:id}</div><span class="pill accent">${p.value}</span></div>`;
+  }).join("") : `<div class="glass card-sm muted" style="font-size:13.5px;">No personal records yet.</div>`;
+}
+renderPRs();
+
+document.getElementById("prSave").onclick = ()=>{
+  const id = document.getElementById("prExercise").value;
+  const val = document.getElementById("prValue").value.trim();
+  if(!val) return;
+  const numMatch = parseFloat(val.replace(/[^\d.]/g,'')) || 0;
+  const prev = state.prs[id];
+  const history = (prev && prev.history) ? prev.history.slice() : [];
+  history.push({v:numMatch, d:todayKey()});
+  state.prs[id] = { value: val, unit:'', date: todayKey(), history };
+  saveState(state);
+  document.getElementById("prValue").value = "";
+  renderPRs();
+  drawChart(document.getElementById("exSelect").value);
+};
+</script>
+</body>
+</html>

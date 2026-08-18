@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Grind — Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="bg-glow"><span class="g1"></span><span class="g2"></span><span class="g3"></span></div>
+<nav id="topnav"></nav>
+<div class="app">
+  <header class="page-in">
+    <div class="eyebrow">Configure</div>
+    <h1>Settings</h1>
+  </header>
+
+  <div class="section">
+    <div class="section-title">Profile</div>
+    <div class="glass">
+      <div class="list-row"><span class="l">Name</span><input id="pName" class="mono" style="border:none;background:transparent;text-align:right;font-size:13.5px;color:var(--ink-dim);outline:none;width:140px;"></div>
+      <div class="list-row"><span class="l">Age</span><input id="pAge" type="number" style="border:none;background:transparent;text-align:right;font-size:13.5px;color:var(--ink-dim);outline:none;width:80px;"></div>
+      <div class="list-row"><span class="l">Fitness Experience</span><select id="pExp" class="r" style="border:none;background:transparent;color:var(--ink-dim);font-size:13.5px;"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
+      <div class="list-row"><span class="l">Goal</span><select id="pGoal" style="border:none;background:transparent;color:var(--ink-dim);font-size:13.5px;"><option>General Fitness</option><option>Strength</option><option>Fat Loss</option><option>Muscle Gain</option><option>Mobility</option></select></div>
+      <div class="list-row"><span class="l">Preferred Location</span><select id="pLoc" style="border:none;background:transparent;color:var(--ink-dim);font-size:13.5px;"><option>Home</option><option>Gym</option><option>Both</option></select></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Workout Settings</div>
+    <div class="glass">
+      <div class="list-row"><span class="l">Duration</span><select id="wDur" style="border:none;background:transparent;color:var(--ink-dim);font-size:13.5px;"><option>15</option><option>20</option><option>30</option><option>45</option><option>60</option></select></div>
+      <div class="list-row"><span class="l">Difficulty</span><select id="wDiff" style="border:none;background:transparent;color:var(--ink-dim);font-size:13.5px;"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
+      <div class="list-row"><span class="l">Equipment Available</span><select id="wEquip" style="border:none;background:transparent;color:var(--ink-dim);font-size:13.5px;"><option>None</option><option>Dumbbells</option><option>Full Gym</option></select></div>
+      <div class="list-row"><span class="l">Days per Week</span><select id="wDays" style="border:none;background:transparent;color:var(--ink-dim);font-size:13.5px;"><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+      <div class="list-row"><span class="l">Preferred Time</span><select id="wTime" style="border:none;background:transparent;color:var(--ink-dim);font-size:13.5px;"><option>Morning</option><option>Afternoon</option><option>Evening</option></select></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Notifications</div>
+    <div class="glass">
+      <div class="list-row"><span class="l">Workout Reminder</span><div class="switch" id="nWorkout"><i></i></div></div>
+      <div class="list-row"><span class="l">Hydration Reminder</span><div class="switch" id="nHydration"><i></i></div></div>
+      <div class="list-row"><span class="l">Progress Reminder</span><div class="switch" id="nProgress"><i></i></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Appearance</div>
+    <div class="glass">
+      <div class="list-row"><span class="l">🌙 Dark Mode</span><div class="switch" id="themeSwitch"><i></i></div></div>
+      <div class="list-row"><span class="l">Units</span><select id="units" style="border:none;background:transparent;color:var(--ink-dim);font-size:13.5px;"><option value="metric">Metric (kg/cm)</option><option value="imperial">Imperial (lb/in)</option></select></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Privacy</div>
+    <div class="glass">
+      <div class="list-row"><span class="l">Account Privacy</span><span class="r">Private</span></div>
+      <a class="list-row tap" href="#" id="clearData"><span class="l">Clear My Data</span><span class="r">›</span></a>
+      <div class="list-row"><span class="l">Progress Photo Privacy</span><span class="r">Stored on device only</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">App</div>
+    <div class="glass">
+      <div class="list-row"><span class="l">Language</span><span class="r">English</span></div>
+      <a class="list-row tap" href="more.html#about"><span class="l">About</span><span class="r">›</span></a>
+      <a class="list-row tap" href="more.html#help"><span class="l">Help &amp; Support</span><span class="r">›</span></a>
+      <a class="list-row tap" href="more.html#terms"><span class="l">Terms &amp; Privacy</span><span class="r">›</span></a>
+    </div>
+  </div>
+
+  <footer class="credit">Daily Grind · <b>Created by Ayush Sharma</b></footer>
+</div>
+<div id="bottomnav"></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+const state = loadState();
+document.getElementById("pName").value = state.profile.name||"";
+document.getElementById("pAge").value = state.profile.age||"";
+document.getElementById("pExp").value = state.profile.experience;
+document.getElementById("pGoal").value = state.profile.goals;
+document.getElementById("pLoc").value = state.profile.location;
+document.getElementById("wDur").value = state.settings.duration;
+document.getElementById("wDiff").value = state.settings.difficulty;
+document.getElementById("wEquip").value = state.settings.equipment;
+document.getElementById("wDays").value = state.settings.daysPerWeek;
+document.getElementById("wTime").value = state.settings.workoutTime;
+document.getElementById("units").value = state.settings.units;
+
+function setSwitch(el, on){ el.classList.toggle("on", !!on); }
+setSwitch(document.getElementById("nWorkout"), state.settings.notif.workout);
+setSwitch(document.getElementById("nHydration"), state.settings.notif.hydration);
+setSwitch(document.getElementById("nProgress"), state.settings.notif.progress);
+setSwitch(document.getElementById("themeSwitch"), state.settings.theme==='dark');
+
+function persist(){ saveState(state); }
+
+document.getElementById("pName").oninput = e=>{ state.profile.name=e.target.value; persist(); };
+document.getElementById("pAge").oninput = e=>{ state.profile.age=e.target.value; persist(); };
+document.getElementById("pExp").onchange = e=>{ state.profile.experience=e.target.value; persist(); };
+document.getElementById("pGoal").onchange = e=>{ state.profile.goals=e.target.value; persist(); };
+document.getElementById("pLoc").onchange = e=>{ state.profile.location=e.target.value; persist(); };
+document.getElementById("wDur").onchange = e=>{ state.settings.duration=+e.target.value; persist(); };
+document.getElementById("wDiff").onchange = e=>{ state.settings.difficulty=e.target.value; persist(); };
+document.getElementById("wEquip").onchange = e=>{ state.settings.equipment=e.target.value; persist(); };
+document.getElementById("wDays").onchange = e=>{ state.settings.daysPerWeek=+e.target.value; persist(); };
+document.getElementById("wTime").onchange = e=>{ state.settings.workoutTime=e.target.value; persist(); };
+document.getElementById("units").onchange = e=>{ state.settings.units=e.target.value; persist(); };
+
+function bindSwitch(id, key){
+  document.getElementById(id).onclick = ()=>{
+    state.settings.notif[key] = !state.settings.notif[key];
+    setSwitch(document.getElementById(id), state.settings.notif[key]);
+    persist();
+  };
+}
+bindSwitch("nWorkout","workout");
+bindSwitch("nHydration","hydration");
+bindSwitch("nProgress","progress");
+
+document.getElementById("themeSwitch").onclick = ()=>{
+  state.settings.theme = state.settings.theme==='dark' ? 'light' : 'dark';
+  setSwitch(document.getElementById("themeSwitch"), state.settings.theme==='dark');
+  applyTheme(state.settings.theme);
+  persist();
+};
+
+document.getElementById("clearData").onclick = (e)=>{
+  e.preventDefault();
+  if(confirm("This will erase your streak, XP, and history on this device. Continue?")){
+    localStorage.removeItem(STATE_KEY);
+    location.reload();
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Grind — Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="bg-glow"><span class="g1"></span><span class="g2"></span><span class="g3"></span></div>
+<nav id="topnav"></nav>
+
+<div class="app">
+  <header class="page-in">
+    <div class="eyebrow" id="dateLine">Today</div>
+    <h1 id="greeting">Good Morning 👋</h1>
+    <p class="muted" id="quoteLine">—</p>
+  </header>
+
+  <div class="section stack">
+    <div class="glass card" id="todayCard"></div>
+
+    <div class="grid-2">
+      <div class="glass card-sm stat"><div class="row"><div><div class="num" id="streakNum">0</div><div class="lab">🔥 Day Streak</div></div></div></div>
+      <div class="glass card-sm stat"><div class="row"><div><div class="num" id="weekNum">0/5</div><div class="lab">This Week</div></div></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Your Progress</div>
+    <div class="glass card">
+      <div class="row" style="margin-bottom:12px;">
+        <div>
+          <h3 id="levelName">Level 1 · Starter</h3>
+          <div class="faint mono" id="xpLine" style="font-size:12px;margin-top:3px;">0 / 100 XP</div>
+        </div>
+        <div class="ring" id="xpRing">
+          <svg width="64" height="64"><circle class="track" cx="32" cy="32" r="26"></circle><circle class="fill" id="xpCircle" cx="32" cy="32" r="26"></circle></svg>
+          <div class="val" id="xpPct">0%</div>
+        </div>
+      </div>
+      <div class="bar"><i id="xpBar" style="width:2%"></i></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Quick Start</div>
+    <div class="chips" id="quickChips"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Ask the Coach</div>
+    <div class="glass card">
+      <p class="muted" style="font-size:13.5px;margin:0 0 12px;">Tell me your time &amp; equipment — I'll build a workout.</p>
+      <div class="search glass sm" style="margin-bottom:10px;">
+        <span>🔍</span>
+        <input id="coachInput" type="text" placeholder='e.g. "20 minutes, no equipment"'>
+      </div>
+      <button class="btn btn-primary btn-full tap" id="coachBtn">Generate Workout</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Recent Activity</div>
+    <div class="stack" id="recentList"></div>
+  </div>
+
+  <footer class="credit">Daily Grind · <b>Created by Ayush Sharma</b></footer>
+</div>
+
+<div id="bottomnav"></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+const state = loadState();
+const now = new Date();
+document.getElementById("dateLine").textContent = dayNameFull(now) + " · " + now.toLocaleDateString('en-US',{month:'long',day:'numeric'});
+document.getElementById("greeting").textContent = (now.getHours()<12?"Good Morning":now.getHours()<18?"Good Afternoon":"Good Evening") + ", " + (state.profile.name||"there") + " 👋";
+document.getElementById("quoteLine").textContent = "“" + quoteOfDay() + "”";
+
+// Today's workout: pull from home plan by weekday
+const plan = PLANS["home"];
+const dName = dayNameFull(now).slice(0,3);
+const wid = plan.days[dName];
+const todayLog = state.log[todayKey()];
+
+const card = document.getElementById("todayCard");
+if(wid === "rest"){
+  card.innerHTML = `
+    <div class="eyebrow">Today's Plan</div>
+    <h2 style="margin:6px 0 2px;">Rest Day</h2>
+    <p class="muted" style="font-size:13.5px;">Recovery is part of training. Stretch a little if you feel like it.</p>
+    <button class="btn ${todayLog?'btn-done':'btn-primary'} btn-full tap" style="margin-top:16px;" id="restBtn">${todayLog? "✓ Logged" : "Log Rest Day"}</button>
+  `;
+  document.getElementById("restBtn").onclick=()=>{
+    if(state.log[todayKey()]) return;
+    logDay(state, {type:'rest', name:'Rest Day'});
+    saveState(state);
+    location.reload();
+  };
+}else{
+  const w = WORKOUTS[wid];
+  card.innerHTML = `
+    <div class="eyebrow">Today's Workout</div>
+    <h2 style="margin:6px 0 2px;">${w.name}</h2>
+    <p class="muted" style="font-size:13.5px;">${w.duration} · ${w.exercises.length} exercises · ${w.difficulty}</p>
+    <a href="workout-player.html?w=${wid}" class="btn ${todayLog?'btn-done':'btn-primary'} btn-full tap" style="margin-top:16px;display:flex;">${todayLog ? "✓ Completed Today" : "START WORKOUT →"}</a>
+  `;
+}
+
+document.getElementById("streakNum").textContent = computeStreak(state);
+const weekDone = [0,1,2,3,4,5,6].filter(i=>{ const d=new Date(); d.setDate(d.getDate()-i); const l=state.log[dateKey(d)]; return l && l.type==='workout'; }).length;
+document.getElementById("weekNum").textContent = weekDone + "/" + state.settings.daysPerWeek;
+
+const xp = xpProgress(state.xp);
+document.getElementById("levelName").textContent = "Level " + xp.lvl + " · " + xp.name;
+document.getElementById("xpLine").textContent = xp.into + " / " + xp.span + " XP";
+document.getElementById("xpPct").textContent = xp.pct + "%";
+document.getElementById("xpBar").style.width = xp.pct + "%";
+const circ = 2*Math.PI*26;
+const fillEl = document.getElementById("xpCircle");
+fillEl.style.strokeDasharray = circ;
+fillEl.style.strokeDashoffset = circ - (xp.pct/100)*circ;
+
+const quickIds = ["quick-15","full-body-a","fat-loss-circuit","mobility-flow"];
+document.getElementById("quickChips").innerHTML = quickIds.map(id=>{
+  const w = WORKOUTS[id];
+  return `<a href="workout-player.html?w=${id}" class="chip tap">${w.name} · ${w.duration}</a>`;
+}).join("");
+
+document.getElementById("coachBtn").onclick = ()=>{
+  const val = document.getElementById("coachInput").value.trim();
+  const mins = parseInt((val.match(/\d+/)||[])[0]) || 20;
+  const noEquip = /no equipment|bodyweight|home/i.test(val) || val==="";
+  let pool = EXERCISES.filter(e=> e.muscle!=='Mobility' && (noEquip ? e.equipment==='None' : true));
+  pool = pool.sort(()=>Math.random()-0.5);
+  const count = Math.max(3, Math.min(8, Math.round(mins/4)));
+  const picked = pool.slice(0, count).map(e=>e.id);
+  state.customSession = { name:"Custom Session", duration:mins+" min", difficulty:state.settings.difficulty, exercises:picked };
+  saveState(state);
+  location.href = "workout-player.html?w=custom";
+};
+
+const recentEl = document.getElementById("recentList");
+const entries = Object.keys(state.log).sort().reverse().slice(0,5);
+if(entries.length===0){
+  recentEl.innerHTML = `<div class="glass card-sm muted" style="font-size:13.5px;">No activity yet — start your first workout today.</div>`;
+}else{
+  recentEl.innerHTML = entries.map(k=>{
+    const e = state.log[k];
+    const d = new Date(k+"T00:00:00");
+    const label = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const icon = e.type==='workout' ? '💪' : '🧘';
+    return `<div class="glass card-sm row"><div class="row" style="gap:12px;"><span style="font-size:18px;">${icon}</span><div><div style="font-weight:700;font-size:13.5px;">${e.name}</div><div class="faint" style="font-size:11.5px;">${label}</div></div></div>${e.exDone!=null?`<span class="pill accent">${e.exDone}/${e.exTotal}</span>`:''}</div>`;
+  }).join("");
+}
+</script>
+</body>
+</html>

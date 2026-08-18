@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Grind — Plans</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="bg-glow"><span class="g1"></span><span class="g2"></span><span class="g3"></span></div>
+<nav id="topnav"></nav>
+<div class="app">
+  <header class="page-in">
+    <div class="eyebrow">Structure</div>
+    <h1>Plans</h1>
+    <p class="muted">A clear path beats a giant list of random exercises.</p>
+  </header>
+
+  <div class="section stack stagger" id="planList"></div>
+
+  <div class="section">
+    <div class="glass card">
+      <h3>Build a Custom Plan</h3>
+      <p class="muted" style="font-size:13.5px;margin:8px 0 14px;">Set your days per week and preferred location in Settings, and Home will build your weekly plan around it.</p>
+      <a href="settings.html" class="btn btn-ghost btn-full tap">Go to Settings</a>
+    </div>
+  </div>
+
+  <footer class="credit">Daily Grind · <b>Created by Ayush Sharma</b></footer>
+</div>
+<div id="bottomnav"></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+document.getElementById("planList").innerHTML = Object.entries(PLANS).map(([id,p])=>{
+  const days = Object.entries(p.days);
+  const workoutDays = days.filter(([d,w])=>w!=='rest').length;
+  return `
+  <div class="glass card">
+    <div class="row" style="align-items:flex-start;">
+      <div>
+        <h3>${p.name}</h3>
+        <p class="muted" style="font-size:13px;margin:6px 0 0;">${p.desc}</p>
+      </div>
+      <span class="pill accent">${workoutDays}x/week</span>
+    </div>
+    <div class="chips" style="margin-top:14px;">
+      ${days.map(([d,w])=>{
+        const label = w==='rest' ? 'Rest' : WORKOUTS[w].name;
+        return `<span class="chip" style="pointer-events:none;">${d} · ${label}</span>`;
+      }).join("")}
+    </div>
+    <button class="btn btn-primary btn-full tap" style="margin-top:16px;" data-plan="${id}">View Today's Session</button>
+  </div>`;
+}).join("");
+
+document.getElementById("planList").addEventListener("click",(e)=>{
+  const btn = e.target.closest("[data-plan]"); if(!btn) return;
+  const plan = PLANS[btn.dataset.plan];
+  const today3 = dayNameFull(new Date()).slice(0,3);
+  const wid = plan.days[today3];
+  if(wid==='rest'){ alert("Today is a rest day on this plan. Enjoy the recovery! 🧘"); return; }
+  location.href = "workout-player.html?w="+wid;
+});
+</script>
+</body>
+</html>
